@@ -58,7 +58,7 @@ const readConf = async () => {
     const { question } = await inquirer.prompt([{
       type: 'input',
       name: 'question',
-      message: '> ',
+      message: '>',
     }]);
 
     await mistral.send(question, handleData);
