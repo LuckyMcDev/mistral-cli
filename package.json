@@ -1,0 +1,41 @@
+{
+  "name": "mistral-cli",
+  "version": "1.0.0",
+  "description": "Mistral CLI",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "mi": "./bin/mi.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Poyoman39/mistral-cli.git"
+  },
+  "keywords": [
+    "mixtral",
+    "cli",
+    "mistral"
+  ],
+  "scripts": {
+    "check:update": "npm-check -u",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix ."
+  },
+  "author": "Johan Maupetit (mistral@poyostudio.mozmail.com)",
+  "license": "LGPL 2.1",
+  "devDependencies": {
+    "@babel/core": "^7.19.1",
+    "@babel/eslint-parser": "^7.19.1",
+    "eslint": "^8.24.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "npm-check": "^6.0.1"
+  },
+  "dependencies": {
+    "colorette": "^2.0.20",
+    "inquirer": "^9.2.12",
+    "undici": "^6.3.0"
+  }
+}
