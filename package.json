@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "bin": {
-    "mi": "./bin/mi.js"
+    "mi": "bin/mi.js"
   },
   "engines": {
     "node": ">=18.0.0"
