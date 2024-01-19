@@ -11,7 +11,7 @@ import Mistral from '../lib/Mistral.js';
 const DEFAULT_CONF = {
   secretKey: 'YOUR API KEY',
   prePrompt: 'Be a helpful assistant',
-  model: 'mistral-tiny',
+  model: 'mistral-small',
 };
 
 const CONF_FOLDER = path.join(homedir(), '/.config/mistral-cli');
