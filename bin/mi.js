@@ -51,6 +51,7 @@ const readConf = async () => {
 
   if (initialQuestion) {
     await mistral.send(initialQuestion, handleData);
+    process.stdout.write('\n\n');
   }
 
   // eslint-disable-next-line no-constant-condition
@@ -62,5 +63,6 @@ const readConf = async () => {
     }]);
 
     await mistral.send(question, handleData);
+    process.stdout.write('\n\n');
   }
 })();
