@@ -8,7 +8,7 @@
     "mi": "bin/mi.js"
   },
   "exports": {
-    ".": "./lib/Mistral"
+    "./Mistral": "./lib/Mistral"
   },
   "engines": {
     "node": ">=18.0.0"
