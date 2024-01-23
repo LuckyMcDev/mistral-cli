@@ -1,6 +1,6 @@
 {
   "name": "mistral-cli",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Mistral CLI",
   "main": "index.js",
   "type": "module",
