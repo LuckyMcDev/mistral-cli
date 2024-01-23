@@ -11,7 +11,7 @@
     ".": "./lib/Mistral.js"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "repository": {
     "type": "git",
@@ -38,7 +38,6 @@
   },
   "dependencies": {
     "colorette": "^2.0.20",
-    "inquirer": "^9.2.12",
-    "undici": "^6.3.0"
+    "inquirer": "^9.2.12"
   }
 }
