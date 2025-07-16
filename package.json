@@ -1,11 +1,11 @@
 {
   "name": "mistral-cli",
-  "version": "1.0.9",
-  "description": "Mistral CLI",
-  "main": "index.js",
+  "version": "2.0.0",
+  "description": "A clean, structured CLI for interacting with Mistral AI",
+  "main": "src/index.js",
   "type": "module",
   "exports": {
-    ".": "./lib/Mistral.js"
+    ".": "./src/api/MistralClient.js"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -13,13 +13,21 @@
   "keywords": [
     "mixtral",
     "cli",
-    "mistral"
+    "mistral",
+    "ai",
+    "chat",
+    "assistant"
   ],
   "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
     "check:update": "npm-check -u"
   },
   "author": "Lucky Dev",
   "license": "LGPL 2.1",
+  "bin": {
+    "mistral-cli": "src/index.js"
+  },
   "devDependencies": {
     "@babel/core": "^7.19.1",
     "@babel/eslint-parser": "^7.19.1",
@@ -30,6 +38,7 @@
   "dependencies": {
     "colorette": "^2.0.20",
     "inquirer": "^9.2.12",
+    "js-yaml": "^4.1.0",
     "marked": "^12.0.1",
     "marked-terminal": "^7.0.0"
   }
