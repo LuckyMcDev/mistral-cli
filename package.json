@@ -4,18 +4,11 @@
   "description": "Mistral CLI",
   "main": "index.js",
   "type": "module",
-  "bin": {
-    "mi": "bin/mi.js"
-  },
   "exports": {
     ".": "./lib/Mistral.js"
   },
   "engines": {
     "node": ">=20.0.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/Poyoman39/mistral-cli.git"
   },
   "keywords": [
     "mixtral",
@@ -23,11 +16,9 @@
     "mistral"
   ],
   "scripts": {
-    "check:update": "npm-check -u",
-    "lint": "eslint .",
-    "lint:fix": "eslint --fix ."
+    "check:update": "npm-check -u"
   },
-  "author": "Johan Maupetit (mistral@poyostudio.mozmail.com)",
+  "author": "Lucky Dev",
   "license": "LGPL 2.1",
   "devDependencies": {
     "@babel/core": "^7.19.1",
@@ -38,6 +29,8 @@
   },
   "dependencies": {
     "colorette": "^2.0.20",
-    "inquirer": "^9.2.12"
+    "inquirer": "^9.2.12",
+    "marked": "^12.0.1",
+    "marked-terminal": "^7.0.0"
   }
 }
