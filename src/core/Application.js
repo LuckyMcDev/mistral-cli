@@ -10,6 +10,7 @@ export class Application {
     this.configFolder = configFolder;
     this.configPath = path.join(configFolder, 'conf.json');
     this.modelsFolder = path.join(configFolder, 'models');
+    this.workingDirectory = process.cwd();
 
     this.configManager = new ConfigManager(this.configPath);
     this.modelConfigManager = new ModelConfigManager(this.modelsFolder);
@@ -40,6 +41,9 @@ export class Application {
       case '💬 Start Chatting':
         await this.startChatSession();
         break;
+      case '📁 Set Working Directory':
+        await this.setWorkingDirectory();
+        break;
       case '⚙️ Change Model':
         await this.changeModel();
         break;
@@ -62,8 +66,25 @@ export class Application {
     const config = this.configManager.getConfig();
     const modelConfig = await this.modelConfigManager.load(config.model);
 
-    this.chatSession = new ChatSession(config, modelConfig, this.ui);
+    this.chatSession = new ChatSession(config, modelConfig, this.ui, this.workingDirectory);
     await this.chatSession.start();
+  }
+
+  async setWorkingDirectory() {
+    try {
+      const newDir = await this.ui.promptWorkingDirectory();
+      const { access } = await import('node:fs/promises');
+
+      // Check if directory exists
+      await access(newDir);
+
+      const { resolve } = await import('node:path');
+      this.workingDirectory = resolve(newDir);
+
+      this.ui.showSuccess(`✅ Working directory set to: ${this.workingDirectory}`);
+    } catch (error) {
+      this.ui.showError(`Invalid directory: ${error.message}`);
+    }
   }
 
   async changeModel() {

@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // src/index.js
 import path from 'node:path';
 import { homedir } from 'node:os';
