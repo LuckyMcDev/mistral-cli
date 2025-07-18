@@ -1,11 +1,31 @@
 // src/ui/UI.js
 import inquirer from 'inquirer';
-import { bold, green, blue, cyan, gray, yellow, red, magenta } from 'colorette';
-import { relative } from 'node:path';
+import chalk from 'chalk';
 
 export class UI {
   constructor() {
-    this.BOX_WIDTH = 60;
+    // Set width based on terminal size, min 80 max 200
+    this.BOX_WIDTH = process.stdout.columns
+      ? Math.min(200, Math.max(80, process.stdout.columns - 4))
+      : 120;
+
+    this.useColors = true;
+    this.htmlOptions = {
+      wordwrap: this.BOX_WIDTH - 4,
+      selectors: [
+        { selector: 'h1', options: { uppercase: false } },
+        { selector: 'h2', options: { uppercase: false } },
+        { selector: 'h3', options: { uppercase: false } },
+        { selector: 'h4', options: { uppercase: false } },
+        { selector: 'h5', options: { uppercase: false } },
+        { selector: 'h6', options: { uppercase: false } },
+        { selector: 'code', options: { format: 'inline' } },
+        { selector: 'pre', options: { format: 'block' } },
+        { selector: 'blockquote', options: { format: 'block' } },
+        { selector: 'ul', options: { format: 'block' } },
+        { selector: 'ol', options: { format: 'block' } },
+      ]
+    };
   }
 
   showWelcome() {
@@ -13,17 +33,17 @@ export class UI {
   }
 
   showAscii() {
-    const rgbColors = [
-      [255, 140, 0],
-      [255, 110, 0],
-      [255, 80, 0],
-      [255, 50, 0],
-      [255, 30, 0],
-      [200, 20, 0],
-    ];
+    console.clear();
 
-    const reset = '\x1b[0m';
-    const colorLine = (line, [r, g, b]) => `\x1b[38;2;${r};${g};${b}m${line}${reset}`;
+    // Enhanced gradient colors
+    const gradientColors = [
+      chalk.rgb(255, 94, 77),   // Coral red
+      chalk.rgb(255, 154, 0),   // Orange
+      chalk.rgb(255, 206, 84),  // Yellow
+      chalk.rgb(75, 192, 192),  // Teal
+      chalk.rgb(54, 162, 235),  // Blue
+      chalk.rgb(153, 102, 255), // Purple
+    ];
 
     const lines = [
       '███╗   ███╗██╗███████╗████████╗██████╗  █████╗ ██╗          ██████╗██╗     ██╗',
@@ -35,26 +55,28 @@ export class UI {
     ];
 
     lines.forEach((line, i) => {
-      console.log(bold(colorLine(line, rgbColors[i])));
+      console.log(gradientColors[i](line));
     });
+
+    console.log('\n' + chalk.gray('─'.repeat(this.BOX_WIDTH)));
+    console.log(chalk.cyan.bold('🤖 AI-Powered CLI with File Operations & HTML Support'));
+    console.log(chalk.gray('─'.repeat(this.BOX_WIDTH)) + '\n');
   }
 
   async showMainMenu() {
-    console.clear();
-    console.log(bold(cyan('=== Mistral CLI Main Menu ===\n')));
-
     const { choice } = await inquirer.prompt([{
       type: 'list',
       name: 'choice',
-      message: 'What do you want to do?',
+      message: chalk.cyan.bold('What would you like to do?'),
       choices: [
-        '💬 Start Chatting',
-        '📁 Set Working Directory',
-        '⚙️ Change Model',
-        '🔑 Set API Key',
-        '📝 Edit Config File',
-        '❌ Exit',
+        { name: '💬 Start Chatting', value: '💬 Start Chatting' },
+        { name: '📁 Set Working Directory', value: '📁 Set Working Directory' },
+        { name: '⚙️ Change Model', value: '⚙️ Change Model' },
+        { name: '🔑 Set API Key', value: '🔑 Set API Key' },
+        { name: '📝 Edit Config File', value: '📝 Edit Config File' },
+        { name: '❌ Exit', value: '❌ Exit' },
       ],
+      pageSize: 10,
     }]);
 
     return choice;
@@ -64,8 +86,9 @@ export class UI {
     const { directory } = await inquirer.prompt([{
       type: 'input',
       name: 'directory',
-      message: 'Enter working directory path:',
+      message: chalk.cyan('Enter working directory path:'),
       default: process.cwd(),
+      prefix: '📁',
     }]);
 
     return directory;
@@ -75,8 +98,8 @@ export class UI {
     const { question } = await inquirer.prompt([{
       type: 'input',
       name: 'question',
-      message: bold(green('You:')),
-      prefix: '',
+      message: chalk.green.bold('You:'),
+      prefix: '👤',
     }]);
 
     return question;
@@ -86,10 +109,11 @@ export class UI {
     const modelDisplayName = this.getModelDisplayName(model);
     const apiType = this.getApiType(model);
 
-    console.log(gray(`Model: ${modelDisplayName} (${apiType})`));
-    console.log(gray(`Working Directory: ${workingDir}`));
-    console.log(gray("Type 'exit' to quit or '/help' for file commands."));
-    console.log(gray('─'.repeat(this.BOX_WIDTH)));
+    console.log('\n' + chalk.gray('═'.repeat(this.BOX_WIDTH)));
+    console.log(chalk.cyan.bold(`🤖 Model: ${modelDisplayName}`) + chalk.gray(` (${apiType})`));
+    console.log(chalk.blue.bold(`📂 Working Directory: `) + chalk.gray(workingDir));
+    console.log(chalk.yellow(`💡 Type 'exit' to quit or '/help' for file commands`));
+    console.log(chalk.gray('═'.repeat(this.BOX_WIDTH)));
   }
 
   getModelDisplayName(model) {
@@ -109,75 +133,208 @@ export class UI {
   }
 
   showFileOperationsHelp() {
-    console.log(bold(cyan('\n📁 File Operations Help:')));
-    console.log(gray('Commands:'));
-    console.log(gray('  /ls [dir]     - List files in directory'));
-    console.log(gray('  /tree [dir]   - Show file tree'));
-    console.log(gray('  /cd <dir>     - Change working directory'));
-    console.log(gray('  /pwd          - Show current directory'));
-    console.log(gray('  /cat <file>   - Show file content'));
-    console.log(gray('  /help         - Show this help'));
-    console.log(gray('\nContext helpers:'));
-    console.log(gray('  @tree         - Include file tree in message'));
-    console.log(gray('  @ls           - Include file list in message'));
-    console.log(gray('  @file:path    - Include file content in message'));
-    console.log(gray('\nAI File Operation Markers:'));
-    console.log(gray('  <FILE_OP:WRITE:path>content</FILE_OP>    - Write file'));
-    console.log(gray('  <FILE_OP:APPEND:path>content</FILE_OP>   - Append to file'));
-    console.log(gray('  <FILE_OP:DELETE:path></FILE_OP>         - Delete file'));
-    console.log(gray('  <DIR_OP:CREATE:path />                  - Create directory'));
-    console.log(gray('─'.repeat(this.BOX_WIDTH)));
+    console.log('\n' + chalk.cyan.bold('📁 File Operations Help:'));
+    console.log(chalk.gray('─'.repeat(this.BOX_WIDTH)));
+
+    console.log(chalk.yellow.bold('Commands:'));
+    const commands = [
+      ['/ls [dir]', 'List files in directory'],
+      ['/tree [dir]', 'Show file tree'],
+      ['/cd <dir>', 'Change working directory'],
+      ['/pwd', 'Show current directory'],
+      ['/cat <file>', 'Show file content'],
+      ['/help', 'Show this help'],
+    ];
+
+    commands.forEach(([cmd, desc]) => {
+      console.log(`  ${chalk.green(cmd.padEnd(12))} ${chalk.gray('- ' + desc)}`);
+    });
+
+    console.log('\n' + chalk.yellow.bold('Context helpers:'));
+    const helpers = [
+      ['@tree', 'Include file tree in message'],
+      ['@ls', 'Include file list in message'],
+      ['@file:path', 'Include file content in message'],
+    ];
+
+    helpers.forEach(([helper, desc]) => {
+      console.log(`  ${chalk.magenta(helper.padEnd(12))} ${chalk.gray('- ' + desc)}`);
+    });
+
+    console.log('\n' + chalk.yellow.bold('AI File Operation Markers:'));
+    const markers = [
+      ['<FILE_OP:WRITE:path>content</FILE_OP>', 'Write file'],
+      ['<FILE_OP:APPEND:path>content</FILE_OP>', 'Append to file'],
+      ['<FILE_OP:DELETE:path></FILE_OP>', 'Delete file'],
+      ['<DIR_OP:CREATE:path />', 'Create directory'],
+    ];
+
+    markers.forEach(([marker, desc]) => {
+      console.log(`  ${chalk.blue(marker)} ${chalk.gray('- ' + desc)}`);
+    });
+
+    console.log(chalk.gray('─'.repeat(this.BOX_WIDTH)));
   }
 
   showAssistantHeader() {
-    console.log(bold(blue('Assistant 🤖:')));
+    console.log('\n' + chalk.magenta.bold('🤖 Assistant:'));
   }
 
   openBox() {
-    console.log(bold(blue(`╭${'─'.repeat(this.BOX_WIDTH)}╮`)));
+    console.log(chalk.magenta(`╭${'─'.repeat(this.BOX_WIDTH)}╮`));
   }
 
   closeBox() {
-    console.log(bold(blue(`╰${'─'.repeat(this.BOX_WIDTH)}╯`)));
+    console.log(chalk.magenta(`╰${'─'.repeat(this.BOX_WIDTH)}╯`));
   }
 
   printBoxLine(line) {
-    const padded = line.padEnd(this.BOX_WIDTH - 4, ' ');
-    console.log(blue(`│ ${cyan(padded)} │`));
+    // Check if line contains HTML
+    if (this.containsHTML(line)) {
+      this.printHTMLLine(line);
+    } else {
+      this.printPlainLine(line);
+    }
+  }
+
+  containsHTML(text) {
+    return /<[^>]*>/g.test(text);
+  }
+
+  printHTMLLine(htmlLine) {
+    try {
+      // Convert HTML to styled text
+      const styledText = this.convertHTMLToStyledText(htmlLine);
+      const lines = styledText.split('\n');
+
+      lines.forEach(line => {
+        if (line.trim()) {
+          const wrapped = this.wrapText(line, this.BOX_WIDTH - 4);
+          wrapped.forEach(wrappedLine => {
+            console.log(chalk.magenta(`│  `) + chalk.whiteBright(wrappedLine) + chalk.magenta('  │'));
+          });
+        } else {
+          console.log(chalk.magenta(`│  `) + ' '.repeat(this.BOX_WIDTH - 4) + chalk.magenta('  │'));
+        }
+      });
+    } catch (error) {
+      // Fallback to plain text if HTML parsing fails
+      this.printPlainLine(htmlLine);
+    }
+  }
+
+  convertHTMLToStyledText(html) {
+    // Enhanced HTML to styled text conversion
+    let text = html;
+
+    // Headers
+    text = text.replace(/<h1[^>]*>(.*?)<\/h1>/gi, (match, content) =>
+      chalk.red.bold.underline(content.toUpperCase()));
+    text = text.replace(/<h2[^>]*>(.*?)<\/h2>/gi, (match, content) =>
+      chalk.yellow.bold(content));
+    text = text.replace(/<h3[^>]*>(.*?)<\/h3>/gi, (match, content) =>
+      chalk.green.bold(content));
+    text = text.replace(/<h[4-6][^>]*>(.*?)<\/h[4-6]>/gi, (match, content) =>
+      chalk.cyan.bold(content));
+
+    // Text formatting
+    text = text.replace(/<strong[^>]*>(.*?)<\/strong>/gi, (match, content) =>
+      chalk.bold(content));
+    text = text.replace(/<b[^>]*>(.*?)<\/b>/gi, (match, content) =>
+      chalk.bold(content));
+    text = text.replace(/<em[^>]*>(.*?)<\/em>/gi, (match, content) =>
+      chalk.italic(content));
+    text = text.replace(/<i[^>]*>(.*?)<\/i>/gi, (match, content) =>
+      chalk.italic(content));
+    text = text.replace(/<u[^>]*>(.*?)<\/u>/gi, (match, content) =>
+      chalk.underline(content));
+
+    // Code
+    text = text.replace(/<code[^>]*>(.*?)<\/code>/gi, (match, content) =>
+      chalk.bgGray.white(` ${content} `));
+    text = text.replace(/<pre[^>]*>(.*?)<\/pre>/gi, (match, content) =>
+      chalk.bgBlack.green(content));
+
+    // Links
+    text = text.replace(/<a[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi, (match, url, content) =>
+      chalk.blue.underline(content) + chalk.gray(` (${url})`));
+
+    // Lists
+    text = text.replace(/<li[^>]*>(.*?)<\/li>/gi, (match, content) =>
+      `  • ${content}`);
+    text = text.replace(/<ul[^>]*>(.*?)<\/ul>/gi, (match, content) =>
+      content);
+    text = text.replace(/<ol[^>]*>(.*?)<\/ol>/gi, (match, content) =>
+      content);
+
+    // Blockquotes
+    text = text.replace(/<blockquote[^>]*>(.*?)<\/blockquote>/gi, (match, content) =>
+      chalk.gray('│ ') + chalk.italic(content));
+
+    // Paragraphs and line breaks
+    text = text.replace(/<p[^>]*>(.*?)<\/p>/gi, (match, content) =>
+      content + '\n');
+    text = text.replace(/<br\s*\/?>/gi, '\n');
+
+    // Remove remaining HTML tags
+    text = text.replace(/<[^>]*>/g, '');
+
+    // Decode HTML entities
+    text = text.replace(/&lt;/g, '<');
+    text = text.replace(/&gt;/g, '>');
+    text = text.replace(/&amp;/g, '&');
+    text = text.replace(/&quot;/g, '"');
+    text = text.replace(/&apos;/g, "'");
+
+    return text;
+  }
+
+  printPlainLine(line) {
+    const padded = line.padEnd(this.BOX_WIDTH - 2, ' ');
+    console.log(chalk.magenta(`│ `) + chalk.whiteBright(padded) + chalk.magenta(' │'));
+  }
+
+  stripAnsiCodes(text) {
+    return text.replace(/\x1b\[[0-9;]*m/g, '');
   }
 
   showFileOperationsHeader() {
-    console.log(bold(magenta('\n📝 File Operations:')));
-    console.log(gray('─'.repeat(30)));
+    console.log('\n' + chalk.yellow.bold('📝 File Operations:'));
+    console.log(chalk.gray('─'.repeat(this.BOX_WIDTH)));
   }
 
   showFileOperation(icon, operation, filepath) {
-    const coloredOp = operation === 'WRITE' ? green(operation) :
-      operation === 'APPEND' ? yellow(operation) :
-        operation === 'DELETE' ? red(operation) :
-          operation === 'READ' ? cyan(operation) :
-            operation === 'MKDIR' ? blue(operation) :
-              operation === 'RMDIR' ? red(operation) :
-                operation;
+    const operationColors = {
+      'WRITE': chalk.green,
+      'APPEND': chalk.yellow,
+      'DELETE': chalk.red,
+      'READ': chalk.cyan,
+      'MKDIR': chalk.blue,
+      'RMDIR': chalk.red,
+    };
 
-    console.log(`${icon} ${coloredOp} ${gray(filepath)}`);
+    const coloredOp = operationColors[operation]
+      ? operationColors[operation](operation)
+      : operation;
+
+    console.log(`${chalk.green(icon)} ${coloredOp} ${chalk.gray(filepath)}`);
   }
 
   showFileList(files) {
-    console.log(bold(cyan('\n📁 Files:')));
-    console.log(gray('─'.repeat(30)));
+    console.log('\n' + chalk.cyan.bold('📁 Files:'));
+    console.log(chalk.gray('─'.repeat(this.BOX_WIDTH)));
 
     files.forEach(file => {
       const icon = file.isDirectory ? '📁' : '📄';
-      const size = file.isDirectory ? '' : ` (${this.formatFileSize(file.size)})`;
-      const color = file.isDirectory ? cyan : gray;
-      console.log(`${icon} ${color(file.name)}${size}`);
+      const size = file.isDirectory ? '' : chalk.dim(` (${this.formatFileSize(file.size)})`);
+      const name = file.isDirectory ? chalk.cyan.bold(file.name) : chalk.whiteBright(file.name);
+      console.log(`${icon} ${name}${size}`);
     });
   }
 
   showFileTree(tree, indent = '') {
-    console.log(bold(cyan('\n🌳 File Tree:')));
-    console.log(gray('─'.repeat(30)));
+    console.log('\n' + chalk.cyan.bold('🌳 File Tree:'));
+    console.log(chalk.gray('─'.repeat(this.BOX_WIDTH)));
     this.printFileTree(tree, '');
   }
 
@@ -186,9 +343,9 @@ export class UI {
       const isLast = index === tree.length - 1;
       const connector = isLast ? '└── ' : '├── ';
       const icon = item.isDirectory ? '📁' : '📄';
-      const color = item.isDirectory ? cyan : gray;
+      const name = item.isDirectory ? chalk.cyan.bold(item.name) : chalk.whiteBright(item.name);
 
-      console.log(`${indent}${connector}${icon} ${color(item.name)}`);
+      console.log(`${chalk.gray(indent)}${chalk.gray(connector)}${icon} ${name}`);
 
       if (item.children && item.children.length > 0) {
         const newIndent = indent + (isLast ? '    ' : '│   ');
@@ -198,24 +355,24 @@ export class UI {
   }
 
   showFileContent(filepath, content) {
-    console.log(bold(cyan(`\n📄 Content of ${filepath}:`)));
-    console.log(gray('─'.repeat(50)));
+    console.log('\n' + chalk.cyan.bold(`📄 Content of ${filepath}:`));
+    console.log(chalk.gray('─'.repeat(this.BOX_WIDTH)));
 
     const lines = content.split('\n');
     lines.forEach((line, index) => {
-      const lineNum = String(index + 1).padStart(3, ' ');
-      console.log(`${gray(lineNum)} │ ${line}`);
+      const lineNum = chalk.gray(String(index + 1).padStart(3, ' '));
+      console.log(`${lineNum} ${chalk.gray(' │')} ${chalk.whiteBright(line)}`);
     });
   }
 
   showCurrentDirectory(dir) {
-    console.log(bold(cyan(`\n📍 Current Directory: ${dir}`)));
+    console.log('\n' + chalk.cyan.bold(`📍 Current Directory: `) + chalk.whiteBright(dir));
   }
 
   showDirectoryChange(oldDir, newDir) {
-    console.log(bold(cyan(`\n📂 Directory changed:`)));
-    console.log(gray(`From: ${oldDir}`));
-    console.log(gray(`To:   ${newDir}`));
+    console.log('\n' + chalk.cyan.bold(`📂 Directory changed:`));
+    console.log(chalk.gray(`From: ${oldDir}`));
+    console.log(chalk.green(`To:   ${newDir}`));
   }
 
   formatFileSize(bytes) {
@@ -243,21 +400,29 @@ export class UI {
         continue;
       }
 
+      // Handle text with ANSI codes
+      const cleanText = this.stripAnsiCodes(paragraph);
       const words = paragraph.split(' ');
       let currentLine = '';
+      let currentCleanLength = 0;
 
       for (const word of words) {
-        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        const cleanWord = this.stripAnsiCodes(word);
+        const testCleanLength = currentCleanLength + (currentCleanLength > 0 ? 1 : 0) + cleanWord.length;
 
-        if (testLine.length <= maxWidth) {
-          currentLine = testLine;
+        if (testCleanLength <= maxWidth) {
+          currentLine = currentLine ? `${currentLine} ${word}` : word;
+          currentCleanLength = testCleanLength;
         } else {
           if (currentLine) {
             lines.push(currentLine);
             currentLine = word;
+            currentCleanLength = cleanWord.length;
           } else {
+            // Word is too long, split it
             lines.push(word.substring(0, maxWidth));
             currentLine = word.substring(maxWidth);
+            currentCleanLength = this.stripAnsiCodes(currentLine).length;
           }
         }
       }
@@ -271,14 +436,17 @@ export class UI {
   }
 
   showGoodbye() {
-    console.log(bold(blue('\nGoodbye!')));
+    console.log('\n' + chalk.magenta.bold('═'.repeat(this.BOX_WIDTH)));
+    console.log(chalk.cyan.bold('🚀 Thank you for using Mistral CLI!'));
+    console.log(chalk.gray('Come back anytime for more AI assistance.'));
+    console.log(chalk.magenta.bold('═'.repeat(this.BOX_WIDTH)) + '\n');
   }
 
   showError(message) {
-    console.error(red(`❌ Error: ${message}`));
+    console.error(chalk.red.bold(`❌ Error: `) + chalk.red(message));
   }
 
   showSuccess(message) {
-    console.log(green(message));
+    console.log(chalk.green.bold('✅ ') + chalk.green(message));
   }
 }
