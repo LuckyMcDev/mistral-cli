@@ -17,6 +17,21 @@ export class ModelConfigManager {
         max_tokens: 1024,
         top_p: 0.95,
       },
+      'mistral-large': {
+        temperature: 0.5,
+        max_tokens: 2048,
+        top_p: 0.9,
+      },
+      'codestral-2501': {
+        temperature: 0.3,
+        max_tokens: 4096,
+        top_p: 0.9,
+      },
+      'codestral-latest': {
+        temperature: 0.3,
+        max_tokens: 4096,
+        top_p: 0.9,
+      },
     };
   }
 

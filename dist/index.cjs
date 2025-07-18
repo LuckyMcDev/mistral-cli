@@ -35978,6 +35978,7 @@ var ConfigManager = class {
   async createDefaultConfig() {
     const defaultConfig = {
       secretKey: "YOUR API KEY",
+      codestralSecretKey: "YOUR CODESTRAL API KEY",
       prePrompt: `You are an expert programmer and coding assistant with the ability to directly manipulate files in the user's working directory. You have access to special markup tags that allow you to perform file operations.
 
 ## Available File Operations
@@ -36046,7 +36047,13 @@ Always provide clear explanations of what you're doing and why when performing f
     console.log("API Key saved successfully.");
   }
   async promptChangeModel() {
-    const models = ["mistral-small", "mistral-medium", "mistral-large"];
+    const models = [
+      { name: "Mistral Small", value: "mistral-small" },
+      { name: "Mistral Medium", value: "mistral-medium" },
+      { name: "Mistral Large", value: "mistral-large" },
+      { name: "Codestral (Latest)", value: "codestral-2501" },
+      { name: "Codestral (Legacy)", value: "codestral-latest" }
+    ];
     const { model } = await inquirer_default.prompt([{
       type: "list",
       name: "model",
@@ -38704,6 +38711,21 @@ var ModelConfigManager = class {
         temperature: 0.6,
         max_tokens: 1024,
         top_p: 0.95
+      },
+      "mistral-large": {
+        temperature: 0.5,
+        max_tokens: 2048,
+        top_p: 0.9
+      },
+      "codestral-2501": {
+        temperature: 0.3,
+        max_tokens: 4096,
+        top_p: 0.9
+      },
+      "codestral-latest": {
+        temperature: 0.3,
+        max_tokens: 4096,
+        top_p: 0.9
       }
     };
   }
@@ -38924,10 +38946,25 @@ var UI2 = class {
     return question;
   }
   showChatHeader(model, workingDir) {
-    console.log(gray(`Model: ${model}`));
+    const modelDisplayName = this.getModelDisplayName(model);
+    const apiType = this.getApiType(model);
+    console.log(gray(`Model: ${modelDisplayName} (${apiType})`));
     console.log(gray(`Working Directory: ${workingDir}`));
     console.log(gray("Type 'exit' to quit or '/help' for file commands."));
     console.log(gray("\u2500".repeat(this.BOX_WIDTH)));
+  }
+  getModelDisplayName(model) {
+    const modelNames = {
+      "mistral-small": "Mistral Small",
+      "mistral-medium": "Mistral Medium",
+      "mistral-large": "Mistral Large",
+      "codestral-2501": "Codestral 2501",
+      "codestral-latest": "Codestral Latest"
+    };
+    return modelNames[model] || model;
+  }
+  getApiType(model) {
+    return model.startsWith("codestral") ? "Codestral API" : "Mistral API";
   }
   showFileOperationsHelp() {
     console.log(bold(cyan("\n\u{1F4C1} File Operations Help:")));
@@ -38950,7 +38987,7 @@ var UI2 = class {
     console.log(gray("\u2500".repeat(this.BOX_WIDTH)));
   }
   showAssistantHeader() {
-    console.log(bold(blue("Mistral \u{1F916}:")));
+    console.log(bold(blue("Assistant \u{1F916}:")));
   }
   openBox() {
     console.log(bold(blue(`\u256D${"\u2500".repeat(this.BOX_WIDTH)}\u256E`)));
@@ -39114,15 +39151,68 @@ var MistralAPIService = class {
   }
 };
 
+// src/api/CodestralAPIService.js
+var CodestralAPIService = class {
+  constructor() {
+    this.baseUrl = "https://codestral.mistral.ai/v1";
+  }
+  async chatCompletions({ model = "codestral-2501", messages, secretKey }) {
+    const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${secretKey}`
+      },
+      body: JSON.stringify({
+        model,
+        messages
+      })
+    });
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+    }
+    return await response.json();
+  }
+  async streamChatCompletions({ model = "codestral-2501", messages, secretKey }) {
+    const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${secretKey}`
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        stream: true
+      })
+    });
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+    }
+    return response.body;
+  }
+};
+
 // src/api/MistralClient.js
 var MistralClient = class {
   constructor(config) {
     this.config = config;
-    this.apiService = new MistralAPIService();
+    if (this.isCodestralModel(config.model)) {
+      this.apiService = new CodestralAPIService();
+      this.secretKey = config.codestralSecretKey;
+    } else {
+      this.apiService = new MistralAPIService();
+      this.secretKey = config.secretKey;
+    }
     this.messages = [{
       role: "system",
       content: config.prePrompt
     }];
+  }
+  isCodestralModel(model) {
+    return model.startsWith("codestral");
   }
   async sendMessage(message, onData) {
     this.messages.push({
@@ -39137,7 +39227,7 @@ var MistralClient = class {
       const stream = await this.apiService.streamChatCompletions({
         model: this.config.model,
         messages: this.messages,
-        secretKey: this.config.secretKey
+        secretKey: this.secretKey
       });
       await this.processStream(stream, onData, responseMessage);
       this.messages.push(responseMessage);

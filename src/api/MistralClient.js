@@ -1,14 +1,28 @@
 // src/api/MistralClient.js
 import { MistralAPIService } from './MistralAPIService.js';
+import { CodestralAPIService } from './CodestralAPIService.js';
 
 export class MistralClient {
   constructor(config) {
     this.config = config;
-    this.apiService = new MistralAPIService();
+
+    // Select the appropriate API service and key based on model
+    if (this.isCodestralModel(config.model)) {
+      this.apiService = new CodestralAPIService();
+      this.secretKey = config.codestralSecretKey;
+    } else {
+      this.apiService = new MistralAPIService();
+      this.secretKey = config.secretKey;
+    }
+
     this.messages = [{
       role: 'system',
       content: config.prePrompt,
     }];
+  }
+
+  isCodestralModel(model) {
+    return model.startsWith('codestral');
   }
 
   async sendMessage(message, onData) {
@@ -26,7 +40,7 @@ export class MistralClient {
       const stream = await this.apiService.streamChatCompletions({
         model: this.config.model,
         messages: this.messages,
-        secretKey: this.config.secretKey,
+        secretKey: this.secretKey,
       });
 
       await this.processStream(stream, onData, responseMessage);

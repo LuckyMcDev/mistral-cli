@@ -22,6 +22,7 @@ export class ConfigManager {
   async createDefaultConfig() {
     const defaultConfig = {
       secretKey: 'YOUR API KEY',
+      codestralSecretKey: 'YOUR CODESTRAL API KEY',
       prePrompt: `You are an expert programmer and coding assistant with the ability to directly manipulate files in the user's working directory. You have access to special markup tags that allow you to perform file operations.
 
 ## Available File Operations
@@ -97,7 +98,14 @@ Always provide clear explanations of what you're doing and why when performing f
   }
 
   async promptChangeModel() {
-    const models = ['mistral-small', 'mistral-medium', 'mistral-large'];
+    const models = [
+      { name: 'Mistral Small', value: 'mistral-small' },
+      { name: 'Mistral Medium', value: 'mistral-medium' },
+      { name: 'Mistral Large', value: 'mistral-large' },
+      { name: 'Codestral (Latest)', value: 'codestral-2501' },
+      { name: 'Codestral (Legacy)', value: 'codestral-latest' }
+    ];
+
     const { model } = await inquirer.prompt([{
       type: 'list',
       name: 'model',

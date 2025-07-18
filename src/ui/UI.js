@@ -83,10 +83,29 @@ export class UI {
   }
 
   showChatHeader(model, workingDir) {
-    console.log(gray(`Model: ${model}`));
+    const modelDisplayName = this.getModelDisplayName(model);
+    const apiType = this.getApiType(model);
+
+    console.log(gray(`Model: ${modelDisplayName} (${apiType})`));
     console.log(gray(`Working Directory: ${workingDir}`));
     console.log(gray("Type 'exit' to quit or '/help' for file commands."));
     console.log(gray('─'.repeat(this.BOX_WIDTH)));
+  }
+
+  getModelDisplayName(model) {
+    const modelNames = {
+      'mistral-small': 'Mistral Small',
+      'mistral-medium': 'Mistral Medium',
+      'mistral-large': 'Mistral Large',
+      'codestral-2501': 'Codestral 2501',
+      'codestral-latest': 'Codestral Latest'
+    };
+
+    return modelNames[model] || model;
+  }
+
+  getApiType(model) {
+    return model.startsWith('codestral') ? 'Codestral API' : 'Mistral API';
   }
 
   showFileOperationsHelp() {
@@ -111,7 +130,7 @@ export class UI {
   }
 
   showAssistantHeader() {
-    console.log(bold(blue('Mistral 🤖:')));
+    console.log(bold(blue('Assistant 🤖:')));
   }
 
   openBox() {
